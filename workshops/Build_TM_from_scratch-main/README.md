@@ -1,5 +1,7 @@
 # NHS R Community - Build a TidyModels Classification Model from Scratch
 
+This workshop was kindly contributed by Gary Hutson, and the materials can be found on [his GitHub](https://github.com/StatsGary/NHS_R_Comm_Build_TM_from_scratch)
+
 <a href="https://hutsons-hacks.info/"><img src = "man/fig/TidyModels.gif"></a>
 
  <!-- badges: start -->

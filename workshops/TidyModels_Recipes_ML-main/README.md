@@ -2,8 +2,9 @@
 
 ![NHSR Community](Images/NHSR.png)
 
-This webinar was designed for the NHS-R Community to look at the new TidyModels developments, and to build on the previous webinar where I discussed the use of Machine Learning in [Caret](https://www.youtube.com/watch?v=rO40vvKXU-4&feature=emb_logo). This seems like the next natural progression for this type of work. 
+This workshop was kindly contributed by Gary Hutson, and the materials can be found on [his GitHub](https://github.com/StatsGary/NHSRComm_TidyModels_Recipes). It was, in fact, delivered in 2021, but there is no 2021 conference repo so it can live here instead.
 
+This webinar was designed for the NHS-R Community to look at the new TidyModels developments, and to build on the previous webinar where I discussed the use of Machine Learning in [Caret](https://www.youtube.com/watch?v=rO40vvKXU-4&feature=emb_logo). This seems like the next natural progression for this type of work. 
 
 ## The TidyModels Framework
 
