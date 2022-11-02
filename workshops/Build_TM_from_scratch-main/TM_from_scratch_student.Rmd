@@ -1,0 +1,553 @@
+---
+title: "Building a TidyModel for Classification from scratch"
+author: "Gary Hutson - Head of Machine Learning"
+
+output:
+  html_document:
+    theme: lumen
+    highlight: tango
+    toc: true
+    number_sections: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(MLDataR)
+library(ConfusionTableR)
+library(tidymodels)
+library(dplyr)
+library(ggplot2)
+library(skimr)
+library(purrr)
+library(ggthemes)
+library(modeldata)
+library(vetiver)
+```
+
+<img src="man/fig/TidyModelsBanner.png" width="200" height="300" align="right">
+
+
+# Data preparation 
+
+The following steps will show you the steps to prepare the data.
+
+## Load in the dataaset and view statistics
+
+<img src="man/fig/mldataR_logo.png" width = "150px" height = "150px">
+
+The dataset for the example will be the Thyroid dataset contained in the `MLDataR` package.
+
+```{r dataset_include}
+td <- MLDataR::thyroid_disease
+skim(td)
+```
+
+## Clean imports
+
+We will remove the null values for now, but you could impute these with methods such as [MICE](https://scikit-learn.org/stable/modules/impute.html) or mean/mode/median imputation methods.
+
+```{r clean_data}
+# ADD CODE HERE
+```
+
+## View class distribution
+
+Next we will view the class distribution of the classification task:
+
+```{r class_disp}
+# ADD CODE HERE
+
+
+```
+
+We will do some over sampling on the sick cases later on in this tutorial, however this level of imbalance will lead to skewed ML models in terms of predicting most patients not to have a thyroid issue. 
+
+Smote is the algorithm we will use for dealing with imbalance:
+
+![](man/fig/test_smote.png)
+This method is used to obtain a synthetically class-balanced or nearly class-balanced training set, which is then used to train the classifier. 
+
+# Explaratory Data Analysis (EDA)
+
+The EDA component we will build sources an external function from the functions sub folder in our project structure. This function builds the `histoplotter` function to enable the visualisation of our continuous variables. 
+
+```{r distribution_function}
+# Get continuous variables only
+# ADD CODE HERE
+
+
+# Bring in external file for visualisations
+source('functions/visualisations.R')
+
+# Use plot function
+## ADD CODE HERE
+
+
+
+
+
+# Add extras to plot
+plot + ggthemes::theme_solarized() + theme(legend.position = 'none') + 
+  scale_color_manual(values=c('negative' = 'red', 'positive' = 'blue'))
+
+
+```
+
+As you can see - we have a number of outliers in the continuous variables. To deal with this we will apply a standardisation method to bring that variability on to a similar scale by mean centering, or another technique, to reduce the affects of the statistical outliers. Other treatment options could be to expunge these from the analysis via anomaly / outlier detection techniques. 
+
+# Model preparation
+
+The next set of steps will be used to get the data ready for the training of the models - we will have a baseline model and compare against a model known for tearing the tabular data challenges on Kaggle. 
+
+## Dividing the data into train/val/test samples
+
+<img src="man/fig/logo_resample.png" width = "150px" height = "150px">
+
+Now we will divide the data into training, validation and test samples:
+
+```{r divide_and_conquer}
+# ADD CODE HERE
+
+```
+
+Okay, we have the training and testing sample. This sample will be used to assess how accurate the model is on the held out testing set. This will link to the evaluate metrics for the model. We will delve into that later on in this training.
+
+## Getting our model ingredients ready with Recipes
+
+<img src="man/fig/logo_recipes.png" width = "150px" height = "150px">
+
+Recipes is a way to simplify the feature engineering process. Back in the old days you had to do each of these steps to the training data prior to fitting a model, especially using package such as `caret`. Now, you can speed this process up massively with the help of the recipes package. Let's whip up the  recipe:
+
+```{r training_recipe}
+# ADD CODE HERE
+
+
+
+# Prep and bake the recipe so we can view this as a seperate data frame
+# ADD CODE HERE
+
+
+
+# Class imbalance resolved
+class_imbalance_after_smote <- unclass(prop.table(table(training_df$ThryroidClass)))[1:2]
+
+print(class_imbalance_after_smote)
+
+```
+
+As we applied Synthetic Minority Oversampling - which is a nearest neighbours method of oversampling we need to check what has happened to the binary labels (negative or sick):
+
+```{r class_imbalance}
+imbalance_frame <- tibble(class_imbalance_original,
+           class_imbalance_after_smote)
+
+print(imbalance_frame)
+
+```
+This technique is not always successful, due to the severity of the imbalance, the representation of the sick class might make the overall distribution imbalanced. 
+
+# Model training 
+
+<img src="man/fig/parsnip_logo.png" width = "150px" height = "150px">
+
+In this example I will create a baseline model and compare against one further classifier, for the sake of brevity. However, in ML challenges it is common to try many different classifiers and pit them against each other in the evaluation stages. 
+
+## Training the Logistic Regression baseline model
+
+The theory is that if a simple linear classifier does a better job than a more complex algorithm, then stick with good old logistic regression. I won't cover the mathematics of logistic regression, but it follows very closely to a linear regression equation, with the addition that there is a log link function used to turn it from a regressor into a classifier.
+
+### Initialising the model
+
+Here I use [Parsnip](https://parsnip.tidymodels.org/) to search for the list of [available models](https://www.tidymodels.org/find/parsnip/):
+
+```{r logistic_reg}
+# ADD CODE HERE
+
+
+
+
+
+```
+
+### Creating the model workflow
+
+<img src="man/fig/logo_workflows.png" width = "150px" height = "150px">
+
+We will use workflows to create the model workflow:
+
+```{r workflows}
+# ADD CODE HERE
+
+
+
+
+
+```
+
+These are easy to explain:
+
+1. I create a workflow for the model 
+2. I add the model that I have initialised in the preceeding step
+3. I add the recipe previously created
+
+Next, I will kick off the training process:
+
+```{r train_baseline}
+## ADD CODE HERE
+
+
+```
+
+### Extracting the fitted data
+
+I want to pull the data fits into a tibble I can explore. This can be done below:
+
+```{r pull_fit}
+# ADD CODE HERE
+
+
+
+```
+
+I will visualise this via a bar chart to observe my significant features: 
+```{r viz_log_reg}
+
+lr_fitted_add <- lr_fitted  %>% 
+  mutate(Significance = ifelse(p.value < 0.05, 
+                               "Significant", "Insignificant")) %>% 
+  arrange(desc(p.value)) 
+#Create a ggplot object to visualise significance
+plot <- lr_fitted_add %>% 
+  ggplot(mapping = aes(x=term, y=p.value, fill=Significance)) +
+  geom_col() + theme(axis.text.x = element_text(
+                                        face="bold", color="#0070BA", 
+                                        size=8, angle=90)
+                                                ) + labs(y="P value", x="Terms", 
+                                                         title="P value significance chart",
+                                                         subtitle="A chart to represent the significant variables in the model",
+                                                         caption="Produced by Gary Hutson")
+
+plotly::ggplotly(plot) 
+
+
+```
+
+## Training a tree based boosting model (XGBoost)
+
+There are many ways to improve model performance, but the three main ways are:
+
+1. Boosting
+2. Bagging 
+3. Stacking 
+
+There are specific R packages for two of these - for bagging see baguette and for stacking see stacks. Otherwise, these can be implemented in caret by extracting the fit objects from the workflow. 
+
+### Set up model
+
+Firstly, we are going to repeat the same process as above and then we are going to compare the results that we get from both models to make a decision about which one to push into production. 
+
+This time I will hyperparameter tune the number of trees to grow and the depth of the leafs of the tree. 
+
+For details of the maths underpinning this model, check out Josh Stamar's excellent videos: https://www.youtube.com/watch?v=ZVFeW798-2I.
+
+```{r setup_xgboost}
+# ADD CODE HERE
+
+
+
+```
+
+### Hyperparameter tuning and K-Fold Cross Validation
+
+<img src="man/fig/logo_dials.png" width = "150px" height = "150px">
+
+Here, as stated, I will do an iterative search for the best parameters to pass to my model:
+
+```{r hp_search}
+# ADD CODE HERE
+
+
+
+
+```
+
+
+### Create XGBoost workflow
+
+I will now implement the workflow to manage the XGBoost model:
+
+```{r xgboost_wf}
+# ADD CODE HERE
+
+
+
+
+
+```
+
+Once I have this I can then go about iterating through the best combinations of fold and hyperparameter: 
+
+```{r training_model, echo=FALSE, include=TRUE, results='hide', message=FALSE}
+# ADD CODE HERE
+
+
+
+```
+
+We will now select the best model:
+
+```{r grab_the_best_mod}
+#ADD CODE HERE
+
+
+
+
+```
+
+Visualising the results: 
+
+```{r viz_hp}
+xgboost_fold %>% 
+  collect_metrics() %>% 
+  mutate(tree_depth = factor(tree_depth)) %>% 
+  ggplot(aes(trees, mean, color = tree_depth)) +
+  geom_line(size=1.5, alpha=0.6) +
+  geom_point(size=2) +
+  facet_wrap(~ .metric, scales='free', nrow=2) +
+  scale_x_log10(labels = scales::label_number()) +
+  scale_color_viridis_d(option='plasma', begin=.9, end =0) + theme_minimal()
+```
+### Finalise the workflow and fit best model
+
+I will now finalise my workflow by slecting the best hyperparameters for the job:
+
+```{r get_best_model_and_hp}
+## ADD CODE HERE
+
+
+```
+
+### Collect metrics for evaluation 
+
+The final step would be to collect the metrics for evaluation. We will dedicate a seperate section to the evaluation of our models:
+
+```{r collected_metrics}
+# ADD CODE HERE
+
+
+```
+
+Next we will look at the workflow fit:
+
+```{r workflow_fit}
+# ADD CODE HERE
+
+
+```
+# Model evaluation
+
+As we are following on from the xgboost model building, we will evaluate this first and then compare to our baseline model:
+
+## Use fitted XGBoost model to predict on testing set
+
+The aim here is to check that our `predictions` match up with our `ground truth` labels. The class labels will be determined by probabilities that are higher than 0.5, however we are going to tweak this threshold to only allow a label if the probability is greater than 0.7:
+
+```{r eval_xgboost}
+# ADD CODE HERE
+
+
+```
+
+
+## Use fitted logistic regression model to predict on test set
+
+We are going to now append our predictions from our model we created as a baseline to append to the predictions we already have in the `predictions` data frame:
+
+```{r lr_model_fit}
+testing_lr_fit_probs <- predict(lr_fit, test, type='prob')
+testing_lr_fit_class <- predict(lr_fit, test)
+
+predictions<- cbind(predictions, testing_lr_fit_probs, testing_lr_fit_class)
+
+predictions <- predictions %>% 
+  dplyr::mutate(log_reg_model_pred=.pred_class,
+                log_reg_model_prob=.pred_sick) %>% 
+  dplyr::select(everything(), -c(.pred_class, .pred_negative)) %>% 
+  dplyr::mutate(log_reg_class_custom = ifelse(log_reg_model_prob >0.7,"sick","negative")) %>% 
+  dplyr::select(-.pred_sick)
+
+
+# Get a head view of the finalised data
+head(predictions)
+
+```
+
+# Evaluating the models with the ConfusionTableR package
+
+<img src="man/fig/ConfusionTableR.png" width = "150px" height = "150px">
+
+The default `caret` confusion_matrix function saves everything as a string and doesn't allow you to work with the values from the output. 
+
+This is the problem the ConfusionTableR package solves and means that you can easily store down the variables into a textual output, as and when needed. 
+
+## Evaluate Logistic Regression baseline
+
+First, I will evaluate my baseline model using the package:
+
+```{r baseline_mod_eval}
+## ADD CODE HERE
+
+
+# View the confusion matrix native
+cm_lr$confusion_matrix
+
+```
+The baseline model performs pretty well. You can see this is the result of fixing our imbalance. Let's work with it in a row wise fashion, as we can extract some metrics we my be interested in:
+
+```{r extract_eval_data_lr}
+# Get record level confusion matrix for logistic regression model
+# ADD CODE HERE
+
+
+
+```
+
+## Evaluate XGBoost Model 
+
+The next stage is to evaluate the XGBoost baseline. We will use this final evaluation to compare with our baseline model. `Note: in reality this would be compared across many models`:
+
+```{r evaluate_xgboost_cm}
+# ADD CODE HERE
+
+
+```
+
+I will now extract the predictions and then I will bind the predictions on to the original frame to view what the difference is:
+
+```{r extract_eval_data}
+# ADD CODE HERE
+
+
+
+```
+
+Comparing the two confusion matrices we have two different models, in reality we would test multiple models, with multiple hyperparameters and multiple splits. 
+
+That is an example of how to rebalance and improve on the baseline model. Now I will take the fit from our test model and deploy with a new R MLOps package called `vetiver`.
+
+# MLOps- putting model into production with Vetiver
+
+<img src="man/fig/logo_vetiver.png" width = "150px" height = "150px">
+
+The steps to deploy a model with vetiver is to:
+1. Version 
+2. Deploy
+3. Monitor
+
+The subsections hereunder will show you how to do this.
+
+## Versioning with Vetiver
+
+I will demonstrate how to deploy our original baseline model. At the moment vetiver serialisation of the model is not supported. The TidyModels team are addressing this and will update their GitHub ticket.
+
+Initialising our vetiver model object:
+
+```{r init_vetiver}
+# ADD CODE HERE
+
+```
+
+The next phase is to store and version our model, so if it is retrained, the version can be extracted to roll back to previous model serialisations:
+
+```{r versioning}
+# ADD CODE HERE
+
+
+
+```
+
+## Deploying with vetiver
+
+We will create a restful API for our deployment of our logistic regression baseline model with `vetiver`.
+
+### Create a REST API
+
+We will use Plumber here, as this allows for quickly deploying web services. See my tutorial on creating a REST API from scratch with Plumber: https://github.com/StatsGary/NHS_R_Community_Intro_to_Docker.
+
+```{r plumberise}
+
+library(plumber)
+library(vetiver)
+pr() %>% 
+  vetiver_api(vet_lr_mod) #%>% 
+  #pr_run()
+
+# Write the plumber file
+vetiver_write_plumber(model_board, 'logistic_regression_model')
+```
+
+### Making deployment easy with RStudio Connect
+
+To simply deploy a vetiver endpoint to R Studio connect, follow this command below:
+
+```{r deploy_to_rs_cloud, eval=FALSE}
+#vetiver_deploy_rsconnect(model_board, "logistic_regression_model")
+```
+
+If you are deploying to any other platform i.e. GCP, AWS, Cloud Run or MS Azure,  you would need to create a microservice and store it in the container registry of the relevant cloud provider. I go into how to deploy your app as an endpoint on Docker here: https://www.youtube.com/watch?v=WMCkV_J5a0s.
+
+### Generate Docker file with Vetiver
+
+To generate your docker files, you can use the below command to generate the doc for container deployment in a [Docker miroservice](https://www.youtube.com/watch?v=WMCkV_J5a0s):
+
+```{r dockerfile}
+# ADD CODE HERE
+```
+
+### Make a prediction with Vetiver endpoint
+
+The first thing to do is set up your endpoint: 
+
+```{r endpoint, eval=FALSE}
+endpoint <- vetiver_endpoint("http://127.0.0.1:8080/predict")
+print(endpoint)
+```
+
+Here the port number (8080) must match that of the port stated. In my case port 8080 is open on my API to connect to and the predict function will allow you to pass requests to and from the endpoint. 
+
+#### Set up production data to test endpoint
+
+Here, we will set up our data to make our fields in our training set:
+
+```{r test_endpoint_with_prod, eval=FALSE}
+# Get the structure of train 
+str(train)
+names(train)
+
+# New patient
+prod_patient <- tibble(
+  patient_age = 40, patient_gender = 1,
+  presc_thyroxine = 0, queried_why_on_thyroxine = 0,
+  presc_anthyroid_meds = 1, sick = 0, 
+  pregnant = 1, thyroid_surgery = 1, 
+  radioactive_iodine_therapyI131 = 0, query_hypothyroid  = 0, 
+  query_hyperthyroid  = 1, lithium = 0, goitre = 0, tumor = 0, 
+  hypopituitarism = 0, psych_condition = 0, TSH_measured = 1,
+  TSH_reading = 2.0, T3_measured = 1, T3_reading = 2.2,
+  T4_measured = 1, T4_reading = 85, thyrox_util_rate_T4U_measured = 1,
+  thyrox_util_rate_T4U_reading = 0.93, FTI_measured = 1, 
+  FTI_reading = 109
+)
+
+```
+
+The step after this would be to predict against our endpoint a new patient:
+
+```{r new_patient, eval=FALSE}
+predict(endpoint, prod_patient)
+```
+This allows you to predict against an active endpoint and simplifies the whole process of Docker file completion. 
+
