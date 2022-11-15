@@ -4,7 +4,7 @@
     <title>Shiny EndomineR</title>
     <meta charset="utf-8" />
     <meta name="author" content="Chris Beeley" />
-    <script src="libs/header-attrs-2.18/header-attrs.js"></script>
+    <script src="libs/header-attrs-2.17/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <script src="libs/htmlwidgets-1.5.4/htmlwidgets.js"></script>
     <script src="libs/d3-3.3.8/d3.min.js"></script>
@@ -63,19 +63,21 @@ class: title-slide, left, bottom
 
 # Diagram
 
-<div id="htmlwidget-f6eea47567acead32de0" style="width:504px;height:504px;" class="DiagrammeR html-widget"></div>
-<script type="application/json" data-for="htmlwidget-f6eea47567acead32de0">{"x":{"diagram":"\ngraph TD\n  A[Import endoscopy data]-->B[Import pathology data]\n  B-->C[Merge data]\n  C-->D[Map terms]\n  D-->E[Save mapping]\n  D-->F[Barrett's]\n  D-->G[Per endoscopist]\n  D-->H[Etc...]\n"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-3ebd221246addeb76189" style="width:504px;height:504px;" class="DiagrammeR html-widget"></div>
+<script type="application/json" data-for="htmlwidget-3ebd221246addeb76189">{"x":{"diagram":"\ngraph TD\n  A[Import endoscopy data]-->B[Import pathology data]\n  B-->C[Merge data]\n  C-->D[Map terms]\n  D-->E[Save mapping]\n  D-->F[Barrett's]\n  D-->G[Per endoscopist]\n  D-->H[Etc...]\n"},"evals":[],"jsHooks":[]}</script>
 
 ---
 
 # No brainer for golem!
 
 * Package dependencies!
-* Use `::`
+  * Use `::` (insert horror story here)
+* Modularise the data reads to control the flow through the application
+* Modularise the analytic code to make it reliable and flexible
 
 ---
 
-# [“stratégie du petit r”](https://engineering-shiny.org/structuring-project.html)
+# [“Stratégie du petit r”](https://engineering-shiny.org/structuring-project.html)
 
 
 ```r
