@@ -63,8 +63,8 @@ class: title-slide, left, bottom
 
 # Diagram
 
-<div id="htmlwidget-3ebd221246addeb76189" style="width:504px;height:504px;" class="DiagrammeR html-widget"></div>
-<script type="application/json" data-for="htmlwidget-3ebd221246addeb76189">{"x":{"diagram":"\ngraph TD\n  A[Import endoscopy data]-->B[Import pathology data]\n  B-->C[Merge data]\n  C-->D[Map terms]\n  D-->E[Save mapping]\n  D-->F[Barrett's]\n  D-->G[Per endoscopist]\n  D-->H[Etc...]\n"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-33e227f542b5153750b6" style="width:504px;height:504px;" class="DiagrammeR html-widget"></div>
+<script type="application/json" data-for="htmlwidget-33e227f542b5153750b6">{"x":{"diagram":"\ngraph TD\n  A[Import endoscopy data]-->B[Import pathology data]\n  B-->C[Merge data]\n  C-->D[Map terms]\n  D-->E[Save mapping]\n  D-->F[Barrett's]\n  D-->G[Per endoscopist]\n  D-->H[Etc...]\n"},"evals":[],"jsHooks":[]}</script>
 
 ---
 
@@ -113,6 +113,30 @@ mod_per_endoscopist_server("per_endoscopist_ui_1",
 
 mod_custom_server("custom_ui_1", r = r)
 ```
+
+---
+
+# Refactoring the business logic
+
+* [Hope this works again!](https://github.com/nhs-r-community/shinyEndomineR/pull/49/files)
+
+---
+
+# Tips and tricks
+
+* Everything should be as small as possible- but no smaller
+* Write tests that test the business logic and the Shiny
+* Use GitHub!
+* Build outside of a reactive database
+
+---
+
+# Next level Shiny clinical applications
+
+* Build end to end as soon as possible
+* Don't be afraid to push your R/functions back into the business package they call
+* Clinical datasets are really big and complicated and annoying
+  * It may help the Shiny make sense to write more code to manipulate the raw data
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

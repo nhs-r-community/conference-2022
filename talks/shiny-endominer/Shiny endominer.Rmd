@@ -142,3 +142,27 @@ mod_per_endoscopist_server("per_endoscopist_ui_1",
 mod_custom_server("custom_ui_1", r = r)
 
 ```
+
+---
+
+# Refactoring the business logic
+
+* [Hope this works again!](https://github.com/nhs-r-community/shinyEndomineR/pull/49/files)
+
+---
+
+# Tips and tricks
+
+* Everything should be as small as possible- but no smaller
+* Write tests that test the business logic and the Shiny
+* Use GitHub!
+* Build outside of a reactive database
+
+---
+
+# Next level Shiny clinical applications
+
+* Build end to end as soon as possible
+* Don't be afraid to push your R/functions back into the business package they call
+* Clinical datasets are really big and complicated and annoying
+  * It may help the Shiny make sense to write more code to manipulate the raw data
