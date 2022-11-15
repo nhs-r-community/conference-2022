@@ -1,0 +1,168 @@
+---
+title: "Shiny EndomineR"
+subtitle: "Refactoring as a way of life"
+author: "Chris Beeley"
+institute: "Nottinghamshire Healthcare NHS Trust"
+date: "17th November 2022"
+output:
+  xaringan::moon_reader:
+    css: 
+      - default
+      - css/nhsr.css
+      - css/nhsr-fonts.css
+    lib_dir: libs
+    seal: false
+    nature:
+      highlightStyle: googlecode
+      highlightLines: true
+      highlightLanguage: ["r"]
+      countIncrementalSlides: false
+      ratio: "16:9"
+    includes:
+      after_body: [css/insert-logo.html]
+---
+
+```{r setup, include = FALSE}
+library(knitr)
+library(tidyverse)
+library(NHSRtheme)
+# set default options
+opts_chunk$set(echo = FALSE)#,
+               # fig.width = 7.252,
+               # fig.height = 4,
+               # dpi = 300)
+
+# uncomment the following lines if you want to use the NHS-R theme colours by default
+# scale_fill_continuous <- partial(scale_fill_nhs, discrete = FALSE)
+# scale_fill_discrete <- partial(scale_fill_nhs, discrete = TRUE)
+# scale_colour_continuous <- partial(scale_colour_nhs, discrete = FALSE)
+# scale_colour_discrete <- partial(scale_colour_nhs, discrete = TRUE)
+```
+
+class: title-slide, left, bottom
+
+# `r rmarkdown::metadata$title`
+----
+## **`r rmarkdown::metadata$subtitle`**
+### `r rmarkdown::metadata$author`
+### `r rmarkdown::metadata$date`
+
+---
+
+# Summary
+
+* EndomineR
+* The original Shiny EndomineR
+* Refactoring to {golem}
+* Refactoring again (?)
+
+---
+
+# EndomineR
+
+* [Text mining for clinical text](https://github.com/ropensci/EndoMineR)
+* Solves three main problems
+  * General clean up, processing, spell check etc.
+  * Data linkage
+  * Analysis of linked data (e.g. looking at dosing of drugs)
+  
+---
+  
+# Shiny EndomineR
+
+* This is a pretty typical Shiny application
+* No modularisation
+* Business logic in server.R code
+* Data model is actually a little complicated
+
+---
+
+# Diagram
+
+```{r}
+
+DiagrammeR::mermaid("
+graph TD
+  A[Import endoscopy data]-->B[Import pathology data]
+  B-->C[Merge data]
+  C-->D[Map terms]
+  D-->E[Save mapping]
+  D-->F[Barrett's]
+  D-->G[Per endoscopist]
+  D-->H[Etc...]
+")
+
+```
+
+---
+
+# No brainer for golem!
+
+* Package dependencies!
+  * Use `::` (insert horror story here)
+* Modularise the data reads to control the flow through the application
+* Modularise the analytic code to make it reliable and flexible
+
+---
+
+# [“Stratégie du petit r”](https://engineering-shiny.org/structuring-project.html)
+
+```{r echo = TRUE, eval = FALSE}
+
+mod_clean_and_merge_server("clean_and_merge_ui_1",
+                           header_filename = "endo.rda",
+                           r = r)
+
+mod_clean_and_merge_server("clean_and_merge_ui_2",
+                           header_filename = "path.rda",
+                           r = r)
+
+mod_merge_data_server("merge_data_ui_1",
+                      load_prev = load_prev,
+                      r = r)
+```
+
+---
+
+# More server.R
+
+```{r echo = TRUE, eval = FALSE}
+
+mod_map_terms_server("map_terms_ui_1", r = r)
+
+barretts_data <- mod_barretts_server("barretts_ui_1", r = r)
+
+polyp_data <- mod_polyps_server("polyps_ui_1", r = r)
+
+mod_per_endoscopist_server("per_endoscopist_ui_1", 
+                           barretts_data = barretts_data,
+                           polyp_data = polyp_data, 
+                           r = r)
+
+mod_custom_server("custom_ui_1", r = r)
+
+```
+
+---
+
+# Refactoring the business logic
+
+* [Hope this works again!](https://github.com/nhs-r-community/shinyEndomineR/pull/49/files)
+
+---
+
+# Tips and tricks
+
+* Everything should be as small as possible- but no smaller
+* Write tests that test the business logic and the Shiny
+* Use GitHub!
+* Build outside of a reactive database
+
+---
+
+# Next level Shiny clinical applications
+
+* Build end to end as soon as possible
+* Don't be afraid to push your R/functions back into the business package they call
+* Clinical datasets are really big and complicated and annoying
+  * It may help the Shiny make sense to write more code to manipulate the raw data

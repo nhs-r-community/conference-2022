@@ -1,11 +1,19 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>Why Python?</title>
+    <title>Shiny EndomineR</title>
     <meta charset="utf-8" />
-    <meta name="author" content="Chris Beeley, Mary Amanuel, Craig Shenton" />
-    <script src="libs/header-attrs-2.18/header-attrs.js"></script>
+    <meta name="author" content="Chris Beeley" />
+    <script src="libs/header-attrs-2.17/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <script src="libs/htmlwidgets-1.5.4/htmlwidgets.js"></script>
+    <script src="libs/d3-3.3.8/d3.min.js"></script>
+    <script src="libs/dagre-0.4.0/dagre-d3.min.js"></script>
+    <link href="libs/mermaid-0.3.0/dist/mermaid.css" rel="stylesheet" />
+    <script src="libs/mermaid-0.3.0/dist/mermaid.slim.min.js"></script>
+    <link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
+    <script src="libs/chromatography-0.1/chromatography.js"></script>
+    <script src="libs/DiagrammeR-binding-1.0.9/DiagrammeR.js"></script>
     <link rel="stylesheet" href="css/nhsr.css" type="text/css" />
     <link rel="stylesheet" href="css/nhsr-fonts.css" type="text/css" />
   </head>
@@ -17,35 +25,125 @@
 
 class: title-slide, left, bottom
 
-# Why Python?
+# Shiny EndomineR
 ----
-### Chris Beeley, Mary Amanuel, Craig Shenton
-### 16th November 2022
+## **Refactoring as a way of life**
+### Chris Beeley
+### 17th November 2022
 
 ---
 
-## Adding Python to your toolkit
+# Summary
 
-* I started learning Python as soon as I started getting interested in text
-* One of my team switched from R to Python in two months
-* They learned Python and wrote a beautiful Python package in less than a year
+* EndomineR
+* The original Shiny EndomineR
+* Refactoring to {golem}
+* Refactoring again (?)
 
 ---
 
-## Why use Python if you already use R?
+# EndomineR
 
-* ML and text
-* Ecosystem
-* Fast, multicore performance out of the box
-* **Very** easy to use with R using {reticulate}
-* My team is proudly multilingual and always will be
+* [Text mining for clinical text](https://github.com/ropensci/EndoMineR)
+* Solves three main problems
+  * General clean up, processing, spell check etc.
+  * Data linkage
+  * Analysis of linked data (e.g. looking at dosing of drugs)
+  
+---
+  
+# Shiny EndomineR
+
+* This is a pretty typical Shiny application
+* No modularisation
+* Business logic in server.R code
+* Data model is actually a little complicated
+
+---
+
+# Diagram
+
+<div id="htmlwidget-33e227f542b5153750b6" style="width:504px;height:504px;" class="DiagrammeR html-widget"></div>
+<script type="application/json" data-for="htmlwidget-33e227f542b5153750b6">{"x":{"diagram":"\ngraph TD\n  A[Import endoscopy data]-->B[Import pathology data]\n  B-->C[Merge data]\n  C-->D[Map terms]\n  D-->E[Save mapping]\n  D-->F[Barrett's]\n  D-->G[Per endoscopist]\n  D-->H[Etc...]\n"},"evals":[],"jsHooks":[]}</script>
+
+---
+
+# No brainer for golem!
+
+* Package dependencies!
+  * Use `::` (insert horror story here)
+* Modularise the data reads to control the flow through the application
+* Modularise the analytic code to make it reliable and flexible
+
+---
+
+# [“Stratégie du petit r”](https://engineering-shiny.org/structuring-project.html)
+
+
+```r
+mod_clean_and_merge_server("clean_and_merge_ui_1",
+                           header_filename = "endo.rda",
+                           r = r)
+
+mod_clean_and_merge_server("clean_and_merge_ui_2",
+                           header_filename = "path.rda",
+                           r = r)
+
+mod_merge_data_server("merge_data_ui_1",
+                      load_prev = load_prev,
+                      r = r)
+```
+
+---
+
+# More server.R
+
+
+```r
+mod_map_terms_server("map_terms_ui_1", r = r)
+
+barretts_data &lt;- mod_barretts_server("barretts_ui_1", r = r)
+
+polyp_data &lt;- mod_polyps_server("polyps_ui_1", r = r)
+
+mod_per_endoscopist_server("per_endoscopist_ui_1", 
+                           barretts_data = barretts_data,
+                           polyp_data = polyp_data, 
+                           r = r)
+
+mod_custom_server("custom_ui_1", r = r)
+```
+
+---
+
+# Refactoring the business logic
+
+* [Hope this works again!](https://github.com/nhs-r-community/shinyEndomineR/pull/49/files)
+
+---
+
+# Tips and tricks
+
+* Everything should be as small as possible- but no smaller
+* Write tests that test the business logic and the Shiny
+* Use GitHub!
+* Build outside of a reactive database
+
+---
+
+# Next level Shiny clinical applications
+
+* Build end to end as soon as possible
+* Don't be afraid to push your R/functions back into the business package they call
+* Clinical datasets are really big and complicated and annoying
+  * It may help the Shiny make sense to write more code to manipulate the raw data
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
 <script>var slideshow = remark.create({
 "highlightStyle": "googlecode",
 "highlightLines": true,
-"highlightLanguage": "python",
+"highlightLanguage": "r",
 "countIncrementalSlides": false,
 "ratio": "16:9"
 });
@@ -147,14 +245,14 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
 <!--Hat-tip: https://www.garrickadenbuie.com/blog/xaringan-tip-logo-all-slides/-->
 <style>
 .logo {
-  background-image: url(img/logo.png);
+  background-image: url(img/logo-blue.png);
   background-size: contain;
   background-repeat: no-repeat;
   position: absolute;
   top: 1em;
   right: 1em;
-  width: 200px;
-  height: 100%;
+  width: 110px;
+  height: 128px;
   z-index: 0;
 }
 </style>
