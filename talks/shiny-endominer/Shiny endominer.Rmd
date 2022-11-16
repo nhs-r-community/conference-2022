@@ -70,7 +70,7 @@ class: title-slide, left, bottom
   
 # Shiny EndomineR
 
-* This is a pretty typical Shiny application
+* This is a pretty typical Shiny application (V 1.0)
 * No modularisation
 * Business logic in server.R code
 * Data model is actually a little complicated
@@ -82,9 +82,9 @@ class: title-slide, left, bottom
 ```{r}
 
 DiagrammeR::mermaid("
-graph TD
-  A[Import endoscopy data]-->B[Import pathology data]
-  B-->C[Merge data]
+graph LR
+  A[Import endoscopy data]-->C[Merge data]
+  B[Import pathology data]-->C
   C-->D[Map terms]
   D-->E[Save mapping]
   D-->F[Barrett's]
@@ -124,6 +124,47 @@ mod_merge_data_server("merge_data_ui_1",
 
 ---
 
+# Modularise the data read
+
+```{r, echo = TRUE, eval = FALSE}
+
+mod_clean_and_merge_server <- function(id, header_filename, r){
+
+# ...
+  
+output$saveHeaders <- downloadHandler(
+  
+  filename = header_filename,
+  
+  content = function(file){
+    
+    saveRDS(spreadsheet_d, file = file)
+  }
+)
+```
+
+---
+
+# Petit r
+
+```{r, echo = TRUE, eval = FALSE}
+
+if(header_filename == "endo.rda"){
+  
+  r$endo_data <- endoData()
+  
+}
+
+if(header_filename == "path.rda"){
+  
+  r$path_data <- endoData()
+}
+
+```
+
+
+---
+
 # More server.R
 
 ```{r echo = TRUE, eval = FALSE}
@@ -148,6 +189,17 @@ mod_custom_server("custom_ui_1", r = r)
 # Refactoring the business logic
 
 * [Hope this works again!](https://github.com/nhs-r-community/shinyEndomineR/pull/49/files)
+
+---
+
+# The future
+
+* Generalise the backend
+* Generalise the frontend
+* Build a highly abstract representation of the data
+* Build a highly abstract representation of the UI
+* I have no idea it it's possible or not
+* I do know that I would at least like to try
 
 ---
 

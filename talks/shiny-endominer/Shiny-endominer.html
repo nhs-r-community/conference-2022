@@ -54,7 +54,7 @@ class: title-slide, left, bottom
   
 # Shiny EndomineR
 
-* This is a pretty typical Shiny application
+* This is a pretty typical Shiny application (V 1.0)
 * No modularisation
 * Business logic in server.R code
 * Data model is actually a little complicated
@@ -63,8 +63,8 @@ class: title-slide, left, bottom
 
 # Diagram
 
-<div id="htmlwidget-33e227f542b5153750b6" style="width:504px;height:504px;" class="DiagrammeR html-widget"></div>
-<script type="application/json" data-for="htmlwidget-33e227f542b5153750b6">{"x":{"diagram":"\ngraph TD\n  A[Import endoscopy data]-->B[Import pathology data]\n  B-->C[Merge data]\n  C-->D[Map terms]\n  D-->E[Save mapping]\n  D-->F[Barrett's]\n  D-->G[Per endoscopist]\n  D-->H[Etc...]\n"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-602ee499f0994642f100" style="width:504px;height:504px;" class="DiagrammeR html-widget"></div>
+<script type="application/json" data-for="htmlwidget-602ee499f0994642f100">{"x":{"diagram":"\ngraph LR\n  A[Import endoscopy data]-->C[Merge data]\n  B[Import pathology data]-->C\n  C-->D[Map terms]\n  D-->E[Save mapping]\n  D-->F[Barrett's]\n  D-->G[Per endoscopist]\n  D-->H[Etc...]\n"},"evals":[],"jsHooks":[]}</script>
 
 ---
 
@@ -96,6 +96,46 @@ mod_merge_data_server("merge_data_ui_1",
 
 ---
 
+# Modularise the data read
+
+
+```r
+mod_clean_and_merge_server &lt;- function(id, header_filename, r){
+
+# ...
+  
+output$saveHeaders &lt;- downloadHandler(
+  
+  filename = header_filename,
+  
+  content = function(file){
+    
+    saveRDS(spreadsheet_d, file = file)
+  }
+)
+```
+
+---
+
+# Petit r
+
+
+```r
+if(header_filename == "endo.rda"){
+  
+  r$endo_data &lt;- endoData()
+  
+}
+
+if(header_filename == "path.rda"){
+  
+  r$path_data &lt;- endoData()
+}
+```
+
+
+---
+
 # More server.R
 
 
@@ -119,6 +159,17 @@ mod_custom_server("custom_ui_1", r = r)
 # Refactoring the business logic
 
 * [Hope this works again!](https://github.com/nhs-r-community/shinyEndomineR/pull/49/files)
+
+---
+
+# The future
+
+* Generalise the backend
+* Generalise the frontend
+* Build a highly abstract representation of the data
+* Build a highly abstract representation of the UI
+* I have no idea it it's possible or not
+* I do know that I would at least like to try
 
 ---
 
